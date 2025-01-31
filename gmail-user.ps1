@@ -2,10 +2,10 @@
 # Requirements: RSAT-AD-PowerShell, GAM, Google Sheet with headers: Email,FirstName,LastName,Username
 
 # Configuration
-$sheetURL = "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv"
+$sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRCEtpUrH2LA7I2sIEufm6iCy3xhpa8bekFSnVoniNF4VUJWm2Fwpj2tp2U2RKW9y-OA1pFxL4HaBds/pub?output=csv"
 $outputCSV = "C:\temp\users.csv"
 $gamPath = "C:\GAM\gam.exe"  # Update to your GAM path
-$domain = "yourdomain.com"   # Update with your domain
+$domain = "nomma.net"   # Update with your domain
 $password = "Password@1"
 
 # Download Google Sheet
@@ -53,6 +53,7 @@ foreach ($user in $users) {
             firstname $user.FirstName `
             lastname $user.LastName `
             password '"""'$password'"""'  # Triple quotes for special characters
+            org "/Staff/Teachers"
         Write-Host "Created Google user: $($user.Email)"
     } catch {
         Write-Warning "Failed to create Google user $($user.Email): $_"
