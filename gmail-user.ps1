@@ -5,7 +5,7 @@
 $sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRCEtpUrH2LA7I2sIEufm6iCy3xhpa8bekFSnVoniNF4VUJWm2Fwpj2tp2U2RKW9y-OA1pFxL4HaBds/pub?output=csv"
 $outputCSV = "C:\temp\users.csv"
 $gamPath = "C:\GAM\gam.exe"  # Update to your GAM path
-$domain = "nomma.net"   # Update with your domain
+$domain = "test.net"   # Update with your domain
 $password = "Password@1"
 
 # Download Google Sheet
