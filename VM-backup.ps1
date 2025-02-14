@@ -11,7 +11,7 @@ $SMTPPort = 587                     # Usually 587 for TLS, 465 for SSL
 $SMTPUser = "your@email.com"        # SMTP authentication username
 $SMTPPassword = "your-email-password" # Use App Password for Gmail or OAuth methods
 
-# Google Drive Path
+# Google Drive Base Path
 $GoogleDrivePath = "GoogleDrive:HyperV-Backups"
 
 # Email Body
@@ -31,6 +31,12 @@ foreach ($VMName in $VMNames) {
     $WeeklyBackupPath = "$BackupRoot\Weekly\$VMName-$Today"
     $MonthlyBackupPath = "$BackupRoot\Monthly\$VMName-$Today"
     $YearlyBackupPath = "$BackupRoot\Yearly\$VMName-$Today"
+
+    # Google Drive Paths (Organized by VM)
+    $GoogleDriveVMPath = "$GoogleDrivePath/$VMName"
+    $GoogleDriveWeekly = "$GoogleDriveVMPath/Weekly/"
+    $GoogleDriveMonthly = "$GoogleDriveVMPath/Monthly/"
+    $GoogleDriveYearly = "$GoogleDriveVMPath/Yearly/"
 
     # Create Backup Directories
     New-Item -ItemType Directory -Path $WeeklyBackupPath -Force | Out-Null
@@ -55,30 +61,33 @@ foreach ($VMName in $VMNames) {
 
     # Upload to Google Drive with Rclone
     Write-Host "Uploading Weekly Backup for $VMName to Google Drive..."
-    rclone copy "$WeeklyBackupPath" "$GoogleDrivePath/Weekly/" --progress
+    rclone copy "$WeeklyBackupPath" "$GoogleDriveWeekly" --progress
 
     Write-Host "Uploading Monthly Backup for $VMName to Google Drive (if applicable)..."
-    rclone copy "$MonthlyBackupPath" "$GoogleDrivePath/Monthly/" --progress
+    rclone copy "$MonthlyBackupPath" "$GoogleDriveMonthly" --progress
 
     Write-Host "Uploading Yearly Backup for $VMName to Google Drive (if applicable)..."
-    rclone copy "$YearlyBackupPath" "$GoogleDrivePath/Yearly/" --progress
+    rclone copy "$YearlyBackupPath" "$GoogleDriveYearly" --progress
 
     # Add VM details to email
     $EmailBody += @"
 - VM: **$VMName**
-  - Weekly Backup: $WeeklyBackupPath
-  - Monthly Backup: $MonthlyBackupPath
-  - Yearly Backup: $YearlyBackupPath
+  - Weekly Backup: $WeeklyBackupPath → $GoogleDriveWeekly
+  - Monthly Backup: $MonthlyBackupPath → $GoogleDriveMonthly
+  - Yearly Backup: $YearlyBackupPath → $GoogleDriveYearly
 
 "@
 }
 
-# Delete Old Backups in Google Drive
+# Delete Old Backups in Google Drive (Each VM Folder)
 Write-Host "Deleting old backups in Google Drive..."
-rclone delete --min-age 8d "$GoogleDrivePath/Weekly/"
-rclone delete --min-age 32d "$GoogleDrivePath/Monthly/"
-rclone delete --min-age 366d "$GoogleDrivePath/Yearly/"
-rclone rmdirs "$GoogleDrivePath/" --leave-root  # Remove empty folders
+foreach ($VMName in $VMNames) {
+    $GoogleDriveVMPath = "$GoogleDrivePath/$VMName"
+    rclone delete --min-age 8d "$GoogleDriveVMPath/Weekly/"
+    rclone delete --min-age 32d "$GoogleDriveVMPath/Monthly/"
+    rclone delete --min-age 366d "$GoogleDriveVMPath/Yearly/"
+    rclone rmdirs "$GoogleDriveVMPath/" --leave-root  # Remove empty folders
+}
 
 # Delete Local Old Backups (optional)
 Write-Host "Cleaning up local old backups..."
